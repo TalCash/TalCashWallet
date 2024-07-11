@@ -21,7 +21,7 @@ def read_address(path):
     if not os.path.exists(path):
         return None
     with open(path, 'r') as file:
-        address = file.read().strip().replace("Address: ", "")
+        address = file.read().strip()
     return address
 
 
@@ -47,7 +47,10 @@ async def create_payment(address, amount, fee):
     public_key = pair["public"]
 
     # Get sender address
-    sender_address = Wallet.get_address(public_key)
+    sender_address = read_address('wallet/address.txt')
+    if sender_address is None:
+        print("Wallet hasn't been created yet, please run python3 create_wallet.py to create wallet first")
+        return
 
     # Create the transaction
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
@@ -56,9 +59,6 @@ async def create_payment(address, amount, fee):
 
     sig_msg = Wallet.create_message(timestamp, sender_data, [receiver_data])
     signature = Wallet.sign_message(private_key, sig_msg)
-
-    print("message")
-    print(sig_msg)
 
     sender_data.key = public_key
     sender_data.signature = signature
